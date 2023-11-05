@@ -66,8 +66,29 @@
 # end
 
 class Users::RegistrationsController < Devise::RegistrationsController
+  include RackSessionFix
   respond_to :json
+
+    def create
+    # Generate a unique JTI (JSON Web Token Identifier) for the user
+    jti = SecureRandom.uuid
+
+    # Create a new user with the generated jti value
+    @user = User.new(user_params.merge(jti: jti))
+
+    if @user.save
+      # Handle successful user creation
+      # ...
+    else
+      # Handle errors in user creation
+      # ...
+    end
+  end
+
   private
+  def user_params
+    params.require(:user).permit(:email, :password)
+  end
 
   def respond_with(resource, _opts = {})
     if request.method == "POST" && resource.persisted?
